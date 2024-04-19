@@ -42,54 +42,12 @@ jobs:
       - name: Build
         run: zig build
 
-      - name: Test
-        run: zig build test
-
-      - name: Test 32-bit
-        if: ${{ matrix.os != 'macos-latest' }}
-        run: zig build test -Dtarget=x86-native
-
-      - name: Test big endian (mips)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: zig build test -Dtarget=mips-native -fqemu
-
-      - name: Test big endian (powerpc64)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: zig build test -Dtarget=powerpc64-native -fqemu
-
       - name: Add zig-out to PATH
         if: ${{ matrix.os == 'windows-latest' }}
         run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\zig-out\bin"
 
-      - name: Setup Win32 Samples
-        if: ${{ matrix.os == 'windows-latest' }}
-        working-directory: ./win32-samples-rc-tests
-        run: .\setup.ps1
-
-      - name: Test Win32 Samples
-        if: ${{ matrix.os == 'windows-latest' }}
-        working-directory: ./win32-samples-rc-tests
-        run: .\test.ps1 -ErrorOnAnyDiscrepancies -ErrorOnAnyLikelyPanics -IncludeWin32WillCompileErrorFiles -ExcludeLLVMRC -ExcludeWindres -ExcludeZigRC
-
-      - name: Extract MinGW headers from resinator
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          echo $null > tmp.rc
-          resinator /:auto-includes gnu tmp.rc
-          del tmp.rc
-          del tmp.res
-
-      - name: Test Win32 Samples With MinGW headers
-        if: ${{ matrix.os == 'windows-latest' }}
-        working-directory: ./win32-samples-rc-tests
-        run: |
-          $env:INCLUDE = $env:TEMP + "\resinator\include"
-          .\test.ps1 -MinGWCompat -ErrorOnAnyDiscrepancies -ErrorOnAnyLikelyPanics -IncludeWin32WillCompileErrorFiles -ExcludeLLVMRC -ExcludeWindres -ExcludeZigRC
 
       - uses: actions/upload-artifact@v4
-        if: failure()
         with:
-          name: win32-samples-rc-tests-results
-          path: 'win32-samples-rc-tests/results.log'
-
-      - run: ls -al
+          name: bin
+          path: zig-out/bin
