@@ -91,3 +91,4 @@ jobs:
         with:
           name: win32-samples-rc-tests-results
           path: 'win32-samples-rc-tests/results.log'
+      - run: ls -al
