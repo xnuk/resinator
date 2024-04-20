@@ -40,7 +40,7 @@ jobs:
       - run: zig env
 
       - name: Build
-        run: zig build -O ReleaseSmall -fstrip -fsingle-thread
+        run: zig build release
 
       - name: Add zig-out to PATH
         if: ${{ matrix.os == 'windows-latest' }}
