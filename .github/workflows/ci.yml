@@ -9,10 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -22,18 +19,10 @@ jobs:
         with:
           version: 0.12.0-dev.3480+9dac8db2d
       - uses: ilammy/msvc-dev-cmd@v1
-        if: ${{ matrix.os == 'windows-latest' }}
         with:
           arch: x86
-      - uses: actions/checkout@v4
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          repository: 'squeek502/win32-samples-rc-tests'
-          submodules: true
-          path: 'win32-samples-rc-tests'
 
       - name: Install qemu
-        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
 
       - run: zig version
@@ -43,11 +32,10 @@ jobs:
         run: zig build release
 
       - name: Add zig-out to PATH
-        if: ${{ matrix.os == 'windows-latest' }}
         run: Add-Content $env:GITHUB_PATH "$env:GITHUB_WORKSPACE\zig-out\bin"
 
 
       - uses: actions/upload-artifact@v4
         with:
-          name: bin-${{ matrix.os }}
+          name: bin
           path: zig-out/bin

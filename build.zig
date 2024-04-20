@@ -146,9 +146,7 @@ pub fn build(b: *std.Build) void {
             .{ .cpu_arch = .aarch64, .os_tag = .macos },
             .{ .cpu_arch = .aarch64, .os_tag = .linux },
             .{ .cpu_arch = .x86_64, .os_tag = .linux },
-            .{ .cpu_arch = .x86, .os_tag = .linux },
             .{ .cpu_arch = .x86_64, .os_tag = .windows },
-            .{ .cpu_arch = .x86, .os_tag = .windows },
         };
         for (release_targets) |release_target| {
             const resolved_release_target = b.resolveTargetQuery(release_target);
@@ -156,7 +154,7 @@ pub fn build(b: *std.Build) void {
                 .name = "resinator",
                 .root_source_file = .{ .path = "src/main.zig" },
                 .target = resolved_release_target,
-                .optimize = .ReleaseFast,
+                .optimize = .ReleaseSmall,
                 .single_threaded = true,
                 .strip = true,
             });
