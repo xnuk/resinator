@@ -9,7 +9,6 @@ const parse = @import("parse.zig");
 const lex = @import("lex.zig");
 const preprocess = @import("preprocess.zig");
 const renderErrorMessage = @import("utils.zig").renderErrorMessage;
-const auto_includes = @import("auto_includes.zig");
 const aro = @import("aro");
 
 pub fn main() !void {
@@ -284,53 +283,6 @@ pub fn main() !void {
     }
 }
 
-fn getIncludePaths(allocator: std.mem.Allocator, auto_includes_option: cli.Options.AutoIncludes, maybe_mingw_includes_dir: ?[]const u8) ![]const []const u8 {
-    var includes = auto_includes_option;
-    if (builtin.target.os.tag != .windows) {
-        switch (includes) {
-            // MSVC can't be found when the host isn't Windows, so short-circuit.
-            .msvc => return error.MsvcIncludesNotFound,
-            // Skip straight to gnu since we won't be able to detect MSVC on non-Windows hosts.
-            .any => includes = .gnu,
-            .none, .gnu => {},
-        }
-    }
-
-    while (true) {
-        switch (includes) {
-            .none => return &[_][]const u8{},
-            .any, .msvc => {
-                // MSVC is only detectable on Windows targets. This unreachable is to signify
-                // that .any and .msvc should be dealt with on non-Windows targets before this point,
-                // since getting MSVC include paths uses Windows-only APIs.
-                if (builtin.target.os.tag != .windows) unreachable;
-                return auto_includes.getMsvcIncludePaths(allocator) catch |err| switch (err) {
-                    error.OutOfMemory => |e| return e,
-                    error.MsvcIncludesNotFound => {
-                        if (includes == .any) {
-                            // fall back to MinGW
-                            includes = .gnu;
-                            continue;
-                        }
-                        return err;
-                    },
-                };
-            },
-            .gnu => {
-                const include_path = include_path: {
-                    if (maybe_mingw_includes_dir) |mingw_includes_dir| {
-                        break :include_path try allocator.dupe(u8, mingw_includes_dir);
-                    } else {
-                        var progress = std.Progress{};
-                        break :include_path try auto_includes.extractMingwIncludes(allocator, &progress);
-                    }
-                };
-                errdefer allocator.free(include_path);
-
-                var include_paths = try allocator.alloc([]const u8, 1);
-                include_paths[0] = include_path;
-                return include_paths;
-            },
-        }
-    }
+fn getIncludePaths(_: std.mem.Allocator, _: cli.Options.AutoIncludes, _: ?[]const u8) ![]const []const u8 {
+    return &[_][]const u8{};
 }

@@ -16,8 +16,6 @@ pub fn build(b: *std.Build) void {
         .optimize = mode,
     });
     const aro_module = aro.module("aro");
-    const compressed_mingw_includes = b.dependency("compressed_mingw_includes", .{});
-    const compressed_mingw_includes_module = compressed_mingw_includes.module("compressed_mingw_includes");
     const resinator = b.addModule("resinator", .{
         .root_source_file = .{ .path = "src/resinator.zig" },
         .imports = &.{
@@ -32,7 +30,6 @@ pub fn build(b: *std.Build) void {
         .optimize = mode,
     });
     exe.root_module.addImport("aro", aro_module);
-    exe.root_module.addImport("compressed_mingw_includes", compressed_mingw_includes_module);
     b.installArtifact(exe);
 
     const test_filter = b.option([]const u8, "test-filter", "Skip tests that do not match filter");
@@ -159,7 +156,6 @@ pub fn build(b: *std.Build) void {
                 .strip = true,
             });
             release_exe.root_module.addImport("aro", aro_module);
-            release_exe.root_module.addImport("compressed_mingw_includes", compressed_mingw_includes_module);
 
             const triple = release_target.zigTriple(b.allocator) catch unreachable;
             const install_dir = b.pathJoin(&.{ "release", triple });
